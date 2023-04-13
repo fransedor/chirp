@@ -8,6 +8,7 @@ import Image from "next/image";
 import LoadingSpinner, { LoadingPage } from "~/components/loading";
 import { useState } from "react";
 import toast from "react-hot-toast";
+import Link from "next/link";
 
 dayjs.extend(relativeTime);
 
@@ -71,23 +72,29 @@ const PostView = (props: PostWithUser) => {
   const { post, author } = props;
 
   return (
-    <div className="flex gap-3 border-b border-slate-400 p-4" key={post.id}>
-      <Image
-        src={author.profileImageUrl}
-        width={56}
-        height={56}
-        alt="Profile Image"
-        className="rounded-full"
-      />
-      <div className="flex flex-col">
-        <div className="flex gap-1 text-slate-300">
-          <span>@{author.username ?? author.firstName}</span>
-          <span>{"\u2022"}</span>
-          <span className="font-thin">{dayjs(post.createdAt).fromNow()}</span>
+    <Link href={`/post/${post.id}`}>
+      <div className="flex gap-3 border-b border-slate-400 p-4" key={post.id}>
+        <Image
+          src={author.profileImageUrl}
+          width={56}
+          height={56}
+          alt="Profile Image"
+          className="rounded-full"
+        />
+        <div className="flex flex-col">
+          <div className="flex gap-1 text-slate-300">
+            <Link
+              href={`/@${author.username ?? author.firstName ?? author.id}`}
+            >
+              <span>@{author.username ?? author.firstName}</span>
+            </Link>
+            <span>{"\u2022"}</span>
+            <span className="font-thin">{dayjs(post.createdAt).fromNow()}</span>
+          </div>
+          <span>{post.content}</span>
         </div>
-        <span>{post.content}</span>
       </div>
-    </div>
+    </Link>
   );
 };
 
