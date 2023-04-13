@@ -5,8 +5,9 @@ import { type RouterOutputs, api } from "~/utils/api";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import Image from "next/image";
-import { LoadingPage } from "~/components/loading";
+import LoadingSpinner, { LoadingPage } from "~/components/loading";
 import { useState } from "react";
+import toast from "react-hot-toast";
 
 dayjs.extend(relativeTime);
 
@@ -14,40 +15,53 @@ const CreatePostWizard = () => {
   const { user } = useUser();
   const [inputValue, setInputValue] = useState("");
   const ctx = api.useContext();
-  const {
-    mutate,
-    isLoading: isPosting,
-    error,
-  } = api.posts.create.useMutation({
+  const { mutate, isLoading: isPosting } = api.posts.create.useMutation({
     onSuccess: () => {
       setInputValue("");
       void ctx.posts.getAll.invalidate();
+    },
+    onError: (e) => {
+      toast.error(e.message);
     },
   });
 
   if (!user) return null;
 
   return (
-    <div className="flex w-full flex-col">
-      <div className="flex w-full gap-3">
-        <Image
-          src={user.profileImageUrl}
-          alt="Profile Image"
-          width={56}
-          height={56}
-          className="rounded-full"
-        />
-        <input
-          type="text"
-          placeholder="Type some text!"
-          className="grow bg-transparent focus:outline-none"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          disabled={isPosting}
-        />
-        <button onClick={() => mutate({ content: inputValue })}>Post</button>
-      </div>
-      {error && <p className="text-red-300">{error.message}</p>}
+    <div className="flex w-full items-center gap-3">
+      <Image
+        src={user.profileImageUrl}
+        alt="Profile Image"
+        width={56}
+        height={56}
+        className="rounded-full"
+      />
+      <input
+        type="text"
+        placeholder="Type some text!"
+        className="grow bg-transparent focus:outline-none"
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        disabled={isPosting}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            if (inputValue !== "") {
+              mutate({ content: inputValue });
+            }
+          }
+        }}
+      />
+      {isPosting ? (
+        <LoadingSpinner></LoadingSpinner>
+      ) : (
+        <button
+          onClick={() => mutate({ content: inputValue })}
+          disabled={!inputValue}
+        >
+          Post
+        </button>
+      )}
     </div>
   );
 };

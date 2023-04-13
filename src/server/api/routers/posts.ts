@@ -62,8 +62,6 @@ export const postsRouter = createTRPCRouter({
 			// User cannot create more than 1 post per minute
 			if (lastPost) {
 				const currentTime = Date.now();
-				console.log("currentTime", currentTime);
-				console.log("UTC mili", lastPost.createdAt.valueOf())
 				if (currentTime - lastPost.createdAt.valueOf() <= 60000) {
 					throw new TRPCError({ code: "TOO_MANY_REQUESTS" })
 				}
