@@ -13,34 +13,41 @@ dayjs.extend(relativeTime);
 const CreatePostWizard = () => {
   const { user } = useUser();
   const [inputValue, setInputValue] = useState("");
-	const ctx = api.useContext();
-  const { mutate, isLoading: isPosting } = api.posts.create.useMutation({
-		onSuccess: () => {
-			setInputValue("");
-			void ctx.posts.getAll.invalidate();
-		}
-	});
+  const ctx = api.useContext();
+  const {
+    mutate,
+    isLoading: isPosting,
+    error,
+  } = api.posts.create.useMutation({
+    onSuccess: () => {
+      setInputValue("");
+      void ctx.posts.getAll.invalidate();
+    },
+  });
 
   if (!user) return null;
 
   return (
-    <div className="flex w-full gap-3">
-      <Image
-        src={user.profileImageUrl}
-        alt="Profile Image"
-        width={56}
-        height={56}
-        className="rounded-full"
-      />
-      <input
-        type="text"
-        placeholder="Type some text!"
-        className="grow bg-transparent focus:outline-none"
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-				disabled={isPosting}
-      />
-      <button onClick={() => mutate({ content: inputValue })}>Post</button>
+    <div className="flex w-full flex-col">
+      <div className="flex w-full gap-3">
+        <Image
+          src={user.profileImageUrl}
+          alt="Profile Image"
+          width={56}
+          height={56}
+          className="rounded-full"
+        />
+        <input
+          type="text"
+          placeholder="Type some text!"
+          className="grow bg-transparent focus:outline-none"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          disabled={isPosting}
+        />
+        <button onClick={() => mutate({ content: inputValue })}>Post</button>
+      </div>
+      {error && <p className="text-red-300">{error.message}</p>}
     </div>
   );
 };
@@ -48,7 +55,7 @@ const CreatePostWizard = () => {
 type PostWithUser = RouterOutputs["posts"]["getAll"][number];
 const PostView = (props: PostWithUser) => {
   const { post, author } = props;
-  console.log(author);
+
   return (
     <div className="flex gap-3 border-b border-slate-400 p-4" key={post.id}>
       <Image

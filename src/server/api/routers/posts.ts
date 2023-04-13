@@ -47,8 +47,27 @@ export const postsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const authorId = ctx.currentUser;
+			const authorId = ctx.currentUser;
+			const lastPost = await ctx.prisma.post.findFirst({
+				where: {
+					authorId: {
+						equals: authorId
+					}
+				},
+				orderBy: {
+					createdAt: "desc"
+				}
+			})
 
+			// User cannot create more than 1 post per minute
+			if (lastPost) {
+				const currentTime = Date.now();
+				console.log("currentTime", currentTime);
+				console.log("UTC mili", lastPost.createdAt.valueOf())
+				if (currentTime - lastPost.createdAt.valueOf() <= 60000) {
+					throw new TRPCError({ code: "TOO_MANY_REQUESTS" })
+				}
+			}
       const post = await ctx.prisma.post.create({
         data: {
           authorId,
